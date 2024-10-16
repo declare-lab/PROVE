@@ -61,7 +61,6 @@ import sympy as sp
 
 {code}
 """.strip()
-        print(execute_code)
 
         with timeout(time_out):
             try:

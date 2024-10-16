@@ -42,7 +42,7 @@ python eval.py \
     --program_max_tokens 1024 \
     --program_gpu 0 \
     --pipeline prove \
-    --dataset gsm8k
+    --dataset <dataset> \
 ```
 
 ### Notes:
@@ -74,3 +74,14 @@ Choose from the following prompts:
 - `direct`
 - `cot`
 - `ps`
+
+## Supported Datasets
+Choose from the following datasets:
+
+- `gsm8k`
+- `svamp`
+- `asdiv`
+- `mawpsmultiarith`
+- `mawpssingleeq`
+- `mawpssingleop`
+- `mawpsaddsub`

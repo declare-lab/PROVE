@@ -10,6 +10,16 @@ def select_prompter(name: str):
     if name == "output2pot":
         return Out2PoTPrompter()
 
+    # MATH
+    if name == "direct_math":
+        return MathDirectPrompter()
+    if name == "cot_math":
+        return MathCoTPrompter()
+    if name == "ps_math":
+        return MathPSPrompter()
+    if name == "output2pot_math":
+        return MathOut2PoTPrompter()
+
     raise KeyError(name)
 
 
@@ -69,3 +79,55 @@ def solution():
 
     def run(self, prompt):
         return self.prompt.format(prompt=prompt)
+
+
+class MathDirectPrompter(Prompter):
+    prompt = """
+{question}
+""".strip()
+
+    def run(self, question):
+        return (
+            self.prompt.format(question=question)
+            + "Present the final answer enclosed in \\boxed{}."
+        )
+
+
+class MathCoTPrompter(Prompter):
+    prompt = """
+Question: {question}
+Answer: Let's think step by step.
+""".strip()
+
+    def run(self, question):
+        return (
+            self.prompt.format(question=question)
+            + "Present the final answer enclosed in \\boxed{}."
+        )
+
+
+class MathPSPrompter(Prompter):
+    prompt = """
+Question: {question}
+Answer: Let's first understand the problem and devise a plan to solve the problem. Then, let's carry out the plan to solve the problem step by step.
+""".strip()
+
+    def run(self, question):
+        return (
+            self.prompt.format(question=question)
+            + "Present the final answer enclosed in \\boxed{}."
+        )
+
+
+class MathOut2PoTPrompter(Prompter):
+    prompt = """
+{prompt}
+
+Convert the following plan and solution to a math problem into Python code.
+""".strip()
+
+    def run(self, prompt):
+        return (
+            self.prompt.format(prompt=prompt)
+            + " Print the final answer enclosed in \\boxed{}."
+        )

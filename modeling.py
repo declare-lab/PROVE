@@ -2,8 +2,10 @@ import os
 import torch
 from dotenv import load_dotenv
 from transformers import AutoTokenizer, AutoModelForCausalLM
+from openai import AzureOpenAI
+import time
 
-load_dotenv(".tokens")
+load_dotenv(".env")
 
 
 def select_model(model_name: str, **kwargs):
@@ -21,6 +23,7 @@ def select_model(model_name: str, **kwargs):
         llama31_8b=Llama31_8B_Model,
         llama32_1b=Llama32_1B_Model,
         llama32_3b=Llama32_3B_Model,
+        gpt4o=GPT4oModel,
     )
     model_class = model_map.get(model_name)
     if model_class is None:
@@ -391,7 +394,6 @@ class Gemma2_9B_Model:
 class Phi3_38B_Model:
     def __init__(self, **kwargs):
         self.model_id = "microsoft/Phi-3-mini-4k-instruct"
-        # self.model_id = "microsoft/Phi-3.5-mini-instruct"
         self.dtype = kwargs.get("dtype", torch.bfloat16)
         self.max_tokens = kwargs.get("max_tokens")
         self.temperature = kwargs.get("temperature")
@@ -998,3 +1000,55 @@ class Llama32_3B_Model:
         )
 
         return responses
+
+
+class GPT4oModel:
+    def __init__(self, **kwargs):
+        self.client = AzureOpenAI(
+            azure_endpoint=os.getenv("AZURE_ENDPOINT"),
+            api_key=os.getenv("AZURE_OPENAI_KEY"),
+            api_version="2024-02-15-preview",
+        )
+
+        self.max_tokens = kwargs.get("max_tokens")
+        self.temperature = kwargs.get("temperature")
+        self.retry = 5
+
+    def run(self, question, num_outputs):
+        message_text = [
+            {
+                "role": "user",
+                "content": question,
+            }
+        ]
+        response = []
+
+        for i in range(self.retry):
+            try:
+                if self.temperature == 0.0:
+                    assert num_outputs == 1, "Temperature = 0 but number of outputs > 1"
+                    completion = self.client.chat.completions.create(
+                        model="GPT4o",
+                        messages=message_text,
+                        temperature=0,
+                        max_tokens=self.max_tokens,
+                        stop=None,
+                    )
+                else:
+                    assert num_outputs > 1, "Temperature > 0 but number of outputs = 1"
+                    completion = self.client.chat.completions.create(
+                        model="GPT4o",
+                        messages=message_text,
+                        temperature=self.temperature,
+                        max_tokens=self.max_tokens,
+                        stop=None,
+                        n=num_outputs,
+                    )
+
+                response = [i.message.content for i in completion.choices]
+            except Exception as e:
+                print(e)
+                time.sleep(60)
+                print(f"GPT-4 request failed, retrying {(i)} ...")
+
+        return response

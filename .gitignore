@@ -1,4 +1,6 @@
 __pycache__
-.tokens
+.env
 results
 logs.jsonl
+cache
+tmp.py

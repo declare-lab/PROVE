@@ -1,5 +1,11 @@
 # Not All Votes Count! Programs as Verifiers Improve Self-Consistency of Language Models for Math Reasoning
 
+
+![](/img/prove_framework.png)
+
+![](/img/prove_improvement.png)
+
+
 ## Setup
 
 1. Create and activate a new Conda environment:
@@ -13,15 +19,15 @@
     pip install -r requirements.txt
     ```
 
-3. Create a `.tokens` file and add your Hugging Face token:
+3. Create a `.env` file and add your Hugging Face token:
     ```bash
     HF_TOKEN=<hf_token>
     ```
 
 ## Running Prove
 
-### Example Command (1 GPU: A40 46GB)
-To run Prove using a single A40 46GB GPU, use the following command:
+### Example Command 
+To run Prove using a single GPU, use the following command:
 
 ```bash
 python eval.py \
@@ -45,9 +51,36 @@ python eval.py \
     --dataset <dataset> \
 ```
 
-### Notes:
-- For models larger than 7B parameters, such as Llama-2-13B-chat, it is recommended to use at least **1 A100 80GB** GPU or **2 A40 46GB** GPUs.
-- You can adjust how models are distributed across multiple GPUs by specifying `--<model>_gpu` parameters for each model in the command.
+
+## Running Prove on MATH
+
+### API Setup
+Include GPT-4o API key and endpoint in `.env` file:
+
+```
+AZURE_OPENAI_KEY=<YOUR_AZURE_OPENAI_KEY>
+AZURE_ENDPOINT=<YOUR_AZURE_ENDPOINT>
+```
+
+### Example Command
+To run Prove using a single GPU, use the following command:
+
+```bash
+python eval.py \
+    --num_cot 16 \
+    --cot_prompt <prompt> \
+    --cot_model <model> \
+    --cot_temperature 0.7 \
+    --cot_max_tokens 1024 \
+    --cot_gpu 0 \
+    --output_to_program output2pot \
+    --program_model gpt4o \
+    --program_temperature 0.0 \
+    --program_max_tokens 1024 \
+    --pipeline prove \
+    --dataset math500 \
+```
+
 
 ## Supported Models
 The following models are supported for the pipeline:
@@ -85,3 +118,19 @@ Choose from the following datasets:
 - `mawpssingleeq`
 - `mawpssingleop`
 - `mawpsaddsub`
+- `math500`
+
+
+
+
+
+## Citation
+Please consider citing the following article if you found our work useful:
+```bibtex
+@article{toh2024not,
+  title={Not All Votes Count! Programs as Verifiers Improve Self-Consistency of Language Models for Math Reasoning},
+  author={Toh, Vernon YH and Ghosal, Deepanway and Poria, Soujanya},
+  journal={arXiv preprint arXiv:2410.12608},
+  year={2024}
+}
+```

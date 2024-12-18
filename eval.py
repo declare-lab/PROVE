@@ -6,11 +6,16 @@ from datetime import datetime
 from tqdm import tqdm
 from pipeline import select_pipeline
 import torch
+from utils import *
 
 
 def main(args):
     if not args.filepath:
         DATA_PATH = f"datasets/{args.dataset}.jsonl"
+        if args.dataset == "math500":
+            args.pipeline += "_math"
+            args.cot_prompt += "_math"
+            args.output_to_program += "_math"
 
         directory_name = (
             datetime.now().strftime("%Y-%m-%d_%H:%M:%S") + f"_{os.getpid()}"
@@ -77,16 +82,21 @@ def main(args):
                 answer = example["target"]
 
                 save = copy.deepcopy(example)
-
                 code, prediction = pipeline.run(question)
-                try:
-                    prediction = float(prediction)
-                    score = 1 if abs(prediction - float(answer)) < 1e-3 else 0
 
-                except Exception as e:
-                    print(e, flush=True)
-                    prediction = ""
-                    score = 0
+                if args.dataset not in ["math500"]:
+                    try:
+                        prediction = float(prediction)
+                        score = 1 if abs(prediction - float(answer)) < 1e-3 else 0
+
+                    except Exception as e:
+                        print(e, flush=True)
+                        prediction = ""
+                        score = 0
+                else:
+                    print(f"prediction: {prediction}\nground truth: {answer}")
+                    score = 1 if is_equiv(prediction, answer) else 0
+                    print(f"score: {score}")
 
                 scores.append(score)
 
